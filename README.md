@@ -15,4 +15,6 @@ Eliminated the 512*512 anchor boxes by changing the code in config.py and facebo
 Here is the result:                 
 ![AFW](https://github.com/cvgroup-erke/YunyingChen/blob/main/HMK2/Faceboxes/AFW.png "AFW=98.12%")
 ![PASCAL](https://github.com/cvgroup-erke/YunyingChen/blob/main/HMK2/Faceboxes/PASCAL.png "PASCAL=96.55%")
-
+                             
+## Homework3           
+Here is nms and soft-nms function implement in python          
