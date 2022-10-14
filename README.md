@@ -17,4 +17,4 @@ Here is the result:
 ![PASCAL](https://github.com/cvgroup-erke/YunyingChen/blob/main/HMK2/Faceboxes/PASCAL.png "PASCAL=96.55%")
                              
 ## Homework3           
-Here is nms and soft-nms function implement in python          
+nms.py contains the nms and soft-nms function implement in python          
