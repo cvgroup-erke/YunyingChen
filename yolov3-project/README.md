@@ -1,4 +1,4 @@
-# Subtitle Detect by YOLOV3
+# Subtitle Detection by YOLOV3
 
 
 
