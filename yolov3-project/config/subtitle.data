@@ -1,6 +1,6 @@
 classes= 2
-train=data/subtitle/subtitle_train.txt
-valid=data/subtitle/subtitle_val.txt
+train=data/subtitle_train.txt
+valid=data/subtitle_train.txt
 names=data/subtitle.names
 backup=backup/
 eval=subtitle

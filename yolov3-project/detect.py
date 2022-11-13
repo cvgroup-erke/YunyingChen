@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--image_folder", type=str, default="./testimg", help="path to dataset")
     parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
-    parser.add_argument("--weights_path", type=str, default="./checkpoints/yolov3_ckpt_3_0.9997437109314624.pth", help="path to weights file")
+    parser.add_argument("--weights_path", type=str, default="./checkpoints/yolov3_ckpt_best.pth", help="path to weights file")
     parser.add_argument("--class_path", type=str, default="data/subtitle.names", help="path to class label file")
     parser.add_argument("--conf_thres", type=float, default=0.1, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.4, help="iou thresshold for non-maximum suppression")

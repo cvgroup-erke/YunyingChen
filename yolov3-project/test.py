@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=8, help="size of each image batch")
     parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
     parser.add_argument("--data_config", type=str, default="config/subtitle.data", help="path to data config file")
-    parser.add_argument("--weights_path", type=str, default="./checkpoints/yolov3_ckpt_1_0.9961861126165438.pth", help="path to weights file")
+    parser.add_argument("--weights_path", type=str, default="./checkpoints/yolov3_ckpt_best.pth", help="path to weights file")
     parser.add_argument("--class_path", type=str, default="data/subtitle.names", help="path to class label file")
     parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
     parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")

@@ -24,7 +24,7 @@ import torch.optim as optim
 import warnings
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epochs", type=int, default=100, help="number of epochs")
+    parser.add_argument("--epochs", type=int, default=10, help="number of epochs")
     parser.add_argument("--batch_size", type=int, default=8, help="size of each image batch")
     parser.add_argument("--gradient_accumulations", type=int, default=2, help="number of gradient accums before step")
     parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         "conf_obj",
         "conf_noobj",
     ]
-
+    best_acc = 0
     for epoch in range(opt.epochs):  
         model.train()
         start_time = time.time()
@@ -174,6 +174,9 @@ if __name__ == "__main__":
                 ap_table += [[c, class_names[c], "%.5f" % AP[i]]]
             print(AsciiTable(ap_table).table)
             print(f"---- mAP {AP.mean()}")
+            if AP.mean()>best_acc:
+                best_acc=AP.mean()
+                torch.save(model.state_dict(), f"checkpoints/yolov3_best.pth")
 
         if epoch % opt.checkpoint_interval == 0:
             torch.save(model.state_dict(), f"checkpoints/yolov3_ckpt_%d_{AP.mean()}.pth" % epoch)
