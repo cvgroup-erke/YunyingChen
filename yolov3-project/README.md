@@ -1,7 +1,10 @@
 # Subtitle Detection By Yolov3
 
 
-
+## Environment
+```commandline
+pip install -r requirement.txt
+```
 
 ## Dataset
 Download the dataset with the following link and save the .zip file under ./data/ folder.               
@@ -11,7 +14,7 @@ Download the dataset with the following link and save the .zip file under ./data
 cd data/
 sh DataGen.sh
 ```
-Generate around 41,000 images with subtitles and split the dataset into training set and validation set by 80% and 20%.
+It will generate around 41,000 images with subtitles and split the dataset into training set and validation set by 80% and 20%.
 
 
         
