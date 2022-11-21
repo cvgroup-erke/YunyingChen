@@ -29,5 +29,11 @@ python train.py
 ## Inference           
 Put the images into testimg folder and the results will be saved in output folder.
 ```commandline
-python detect.py  --weights_path checkpoints/your_model_path.pth
-```
+python detect.py  --weights_path checkpoints/your_model_path.pth                         
+```     
+
+## Performance                
+The best mAP can reach 0.999 in 10 epochs
+The inference results are as follows:
+![output1](https://github.com/cvgroup-erke/YunyingChen/blob/main/yolov3-project/output/BBC_China_17600_1104.png)                               
+![output2](https://github.com/cvgroup-erke/YunyingChen/blob/main/yolov3-project/output/BBC_China_18980_270.png)
