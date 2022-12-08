@@ -18,3 +18,11 @@ Here is the result:
                              
 ## Homework3           
 nms.py contains the nms and soft-nms function implemented in python          
+
+## GAN       
+In this repo, the network has been modified by using ResNet50 as backbone.            
+The loss of Discriminator is 0.5 and the loss of Generator is 0.                 
+![loss](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/loss.png)         
+The generated images are as follows:                  
+![output](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/9600.png)
+![output](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/10000.png)
