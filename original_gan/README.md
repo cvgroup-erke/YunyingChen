@@ -1,6 +1,6 @@
 ## GAN
 
-The Discriminator and Generator are defined in Resnet.py. They are using Resnet50 as backbone.            
+The Discriminator and Generator are defined in resnet50.py. They are using ResNet50 as backbone.            
 The 1-dimension random noise input is changed into a 3-dimension input [3,7,7]                
 
 
