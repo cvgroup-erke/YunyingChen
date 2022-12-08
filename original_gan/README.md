@@ -11,6 +11,6 @@ Here are some problems that I have encountered and made some solutions to them, 
 2. If the random noise input is too big, the Generator network is hard to train and will gain a high loss. So I try to keep the 3-dimension input small.  
 
 But here are some problems are unsolved:                
-While training the loss of Generator and Discriminator will jump from a sudden and the result will suddenly will bad.         
+While training the loss of Generator and Discriminator will jump from a sudden and the result will suddenly turn bad.         
 ![loss](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/loss1.png)  
 ![loss](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/loss2.png)   
