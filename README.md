@@ -19,6 +19,10 @@ Here is the result:
 ## Homework3           
 nms.py contains the nms and soft-nms function implemented in python          
 
+
+
+
+
 ## GAN       
 In this repo, the network has been modified by using ResNet50 as backbone.            
 The loss of Discriminator is 0.5 and the loss of Generator is 0.                 
