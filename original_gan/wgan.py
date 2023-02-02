@@ -30,8 +30,13 @@ parser.add_argument("--channels", type=int, default=1, help="number of image cha
 parser.add_argument("--n_critic", type=int, default=5, help="number of training steps for discriminator per iter")
 parser.add_argument("--clip_value", type=float, default=0.01, help="lower and upper clip value for disc. weights")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval betwen image samples")
+parser.add_argument("--gp", type=bool, default=True, help="use gradient penalty or not")
+parser.add_argument("--save_dir", type=str, default='./resnet_gp', help="dir of result")
 opt = parser.parse_args()
 print(opt)
+
+if not os.path.exists(opt.save_dir):
+    os.makedirs(opt.save_dir)    
 
 img_shape = (opt.channels, opt.img_size, opt.img_size)
 
@@ -97,12 +102,29 @@ for epoch in range(opt.n_epochs):
         # Adversarial loss
         loss_D = -torch.mean(discriminator(real_imgs)) + torch.mean(discriminator(fake_imgs))
 
+        #gradient penalty 
+        if opt.gp:
+            alpha = torch.rand(real_imgs.shape[0],1,1,1)
+            if cuda:
+                alpha = alpha.cuda(non_blocking = True)
+            x_hat = (alpha*real_imgs.data + (1-alpha)*fake_imgs).requires_grad_(True)
+            out = discriminator(x_hat)
+            dx = torch.autograd.grad(outputs=out,
+                                     inputs=x_hat,
+                                     grad_outputs=torch.ones(out.size()).cuda(),
+                                     retain_graph = True,
+                                     create_graph = True,
+                                     only_inputs = True)[0].view(out.shape[0],-1)
+            gp_loss = torch.mean((torch.norm(dx,p=2)-1)**2)
+            loss_D  += gp_loss
+
         loss_D.backward()
         optimizer_D.step()
 
-        # Clip weights of discriminator
-        for p in discriminator.parameters():
-            p.data.clamp_(-opt.clip_value, opt.clip_value)
+        # Clip weights of discriminator while not using gradient penalty
+        if not opt.gp:
+            for p in discriminator.parameters():
+                p.data.clamp_(-opt.clip_value, opt.clip_value)
 
         # Train the generator every n_critic iterations
         if i % opt.n_critic == 0:
@@ -127,6 +149,7 @@ for epoch in range(opt.n_epochs):
             )
 
         if batches_done % opt.sample_interval == 0:
-            save_image(gen_imgs.data[:25], "resnet_mlp_wgan/%d.png" % batches_done, nrow=5, normalize=True)
+            
+            save_image(gen_imgs.data[:25], "%s/%d.png" % (opt.save_dir,batches_done), nrow=5, normalize=True)
         batches_done += 1
 

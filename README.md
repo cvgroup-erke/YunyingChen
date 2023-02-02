@@ -14,4 +14,7 @@ nms.py contains the nms and soft-nms function implemented in python
 
 ## GAN               
 In this repo, the network has been modified by using ResNet50 as backbone.                        
-It shows the results by using original loss and Wgan respectively. 
+It shows the 3 results by using different losses:
+1. using original loss      
+2. using Wgan loss with clipping to limit the parameters to [-0.01, 0.01]             
+3. using Wgan with gradient penalty                   

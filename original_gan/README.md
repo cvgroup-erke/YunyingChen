@@ -11,6 +11,11 @@ Using the original loss in Gan, the generated images are as follows:
 
 
 
-Changing the loss to Wgan, the generated images are as follows:             
+Changing the loss to Wgan and using clip to limit the parameters to [-0.01, 0.01], the generated images are as follows:             
 ![ouput](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/wgan1.png)
 ![output](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/wgan2.png)
+
+
+Changing the loss to Wgan and using gradient penalty, the generated images are as follows:             
+![ouput](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/wgan_gp1.png)
+![output](https://github.com/cvgroup-erke/YunyingChen/blob/main/original_gan/imgs/wgan_gp2.png)
