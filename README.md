@@ -18,3 +18,7 @@ It shows the 3 results by using different losses:
 1. using original loss      
 2. using Wgan loss with clipping to limit the parameters to [-0.01, 0.01]             
 3. using Wgan with gradient penalty                   
+
+
+# BBC_class
+In this repo, it includes the color correction model with gan and conditional gan.
