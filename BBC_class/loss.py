@@ -65,7 +65,7 @@ class LossGAN(nn.Module):
     def forward(self, phase, Discriminator, img,pred, target, epoch_id):
         
         if phase == 'D':
-            if self.mode =='conditional_gan':
+            if self.mode =='conditional_gan' or self.mode =='flownet':
                 pred = torch.cat((pred,img),dim=1)
                 target = torch.cat((target,img),dim=1)
             # discriminator losses: here we use wan-gp
@@ -135,10 +135,10 @@ class LossGAN(nn.Module):
                                        only_inputs=True)[0].view(out.shape[0], -1)
             gp_loss = torch.mean((torch.norm(dxdD, p=2) - 1) ** 2)
             return adv_D_loss, gp_loss, None
-        else:
+        elif phase == 'G':
             # generator losses
             # 1. adversarial loss
-            if self.mode =='conditional_gan':
+            if self.mode =='conditional_gan' or self.mode =='flownet':
                 pred_AB = torch.cat((pred,img),dim=1)
                 adv_G_loss = -torch.mean(Discriminator(pred_AB))
             else:
@@ -157,4 +157,19 @@ class LossGAN(nn.Module):
                 res_pred = self.resnet(pred)
                 perceptual_loss = self.mse(res_pred, res_target)
             return adv_G_loss, pixel_loss, perceptual_loss
+        
+        else:
+            #Flownet loss
+            # 1. pixel loss
+            pixel_loss = self.mse(pred, target)
+                
 
+            # # 2. perceptual loss
+            # perceptual_loss = 0
+            # if self.perceptual_loss:
+            #     res_target = self.resnet(target).detach()
+            #     res_pred = self.resnet(pred)
+            #     perceptual_loss = self.mse(res_pred, res_target)
+
+                  
+            return pixel_loss

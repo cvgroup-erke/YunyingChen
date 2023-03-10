@@ -92,12 +92,12 @@ if __name__ == '__main__':
             input_image_256 = input_transform_256(np_image_256).unsqueeze(0)
             input_image_128 = input_transform_128(np_image_128).unsqueeze(0)
             input_image_64 = input_transform_64(np_image_64).unsqueeze(0)
-            if args.mode == 'gan' or args.mode == 'conditional_gan':
+            if args.mode == 'basic' :
+                z = 0
+            else: 
                 z = torch.rand((1, 1, 8, 8))
                 if args.cuda:
                     z = z.cuda()
-            else:
-                z = 0
 
         model.eval()
         if cuda:

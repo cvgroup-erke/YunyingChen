@@ -10,9 +10,10 @@ from bbc_data import BBCDataset, collate_fn
 from model import Discriminator, Generator
 from loss import LossGAN
 from config import load_config
-
+from flownet import FlowNet2
 import gc
-
+import torch.nn as nn
+import numpy as np
 
 class TrainerGAN:
     def __init__(self, args):
@@ -33,9 +34,19 @@ class TrainerGAN:
         # model
         self.G = Generator(args)
         self.D = Discriminator(args)
+        
         if args.cuda:
             self.G = torch.nn.DataParallel(self.G).cuda()
             self.D = torch.nn.DataParallel(self.D).cuda()
+            
+        
+        if self.args.mode =='flownet':
+            self.F = FlowNet2(args) 
+            pred_train = torch.load("FlowNet2_checkpoint.pth.tar")
+            self.F.load_state_dict(pred_train["state_dict"])
+            if args.cuda:
+                self.F = torch.nn.DataParallel(self.F).cuda()
+            self.F.eval()
 
         # Optimizer
         if self.args.solver == 'adam' or args.solver == 'Adam':
@@ -81,23 +92,40 @@ class TrainerGAN:
         for iteration, batch in enumerate(self.train_dataloader):
             if self.args.mode == 'basic':
                 img, target = batch[0], batch[1]
+            elif self.args.mode=='flownet':
+                imgs, imgs256, imgs128, imgs64, targets = batch[0], batch[1], batch[2], batch[3], batch[4]
+                img,imgt1,imgt2 = imgs
+                img256,imgt1_256,imgt2_256 = imgs256
+                img128,imgt1_128,imgt2_128 = imgs128
+                img64 , imgt1_64,imgt2_64 = imgs64
+                target , targett1,targett2 = targets
             else:
-                img, img256, img128, img64, target = batch[0], batch[1], batch[2], batch[3], batch[4]
+                img, img256, img128, img64, target = batch[0], batch[1], batch[2], batch[3], batch[4]   
+
             if self.args.cuda:
                 if self.args.mode == 'basic':
                     img, target = img.cuda(), target.cuda()
+
+                elif  self.args.mode == 'flownet':
+                    img, img256, img128, img64, target = img.cuda(), img256.cuda(), img128.cuda(), img64.cuda(), target.cuda()
+                    imgt1, imgt1_256, imgt1_128, imgt1_64, targett1 = imgt1.cuda(), imgt1_256.cuda(), imgt1_128.cuda(), imgt1_64.cuda(), targett1.cuda()
+                    imgt2, imgt2_256, imgt2_128, imgt2_64, targett2 = imgt2.cuda(), imgt2_256.cuda(), imgt2_128.cuda(), imgt2_64.cuda(), targett2.cuda()
+                
                 else:
                     img, img256, img128, img64, target = img.cuda(), img256.cuda(), img128.cuda(), img64.cuda(), target.cuda()
 
+                    
             # create noise vector
             # z = torch.FloatTensor(np.random.uniform(-1, 1, (len(img), args.zdim)))
             z = torch.rand((len(img), 1, 8, 8))
+            
             if self.args.cuda:
                 z = z.cuda()
+                               
             
             # generate image
             pred_img = self.G(img, img256, img128, img64, z)
-  
+            
             # optimize Discriminator
             for d_parm in self.D.parameters():
                 d_parm.requires_grad = True
@@ -126,11 +154,60 @@ class TrainerGAN:
             # optimize Generator
             for d_parm in self.D.parameters():
                 d_parm.requires_grad = False
-
-            adv_G_loss, pixel_loss, perceptual_loss = self.criterion('G', self.D,img, pred_img, target, epoch_index)
+                
+            adv_G_loss, pixel_loss, perceptual_loss = self.criterion('G', self.D, img, pred_img, target, epoch_index)
+            
             G_loss = args.adv_G_loss_weight * adv_G_loss + \
                      args.pixel_loss_weight * pixel_loss + \
                      args.perceptual_loss_weight * perceptual_loss
+
+            # running Flownet
+            if self.args.mode=='flownet':
+                z1 = torch.rand((len(img), 1, 8, 8))
+                z2 = torch.rand((len(img), 1, 8, 8))
+                if self.args.cuda:
+                    z1 = z1.cuda()
+                    z2 = z2.cuda()
+                pred_imgt1 = self.G(imgt1, imgt1_256, imgt1_128, imgt1_64, z1)
+                pred_imgt2 = self.G(imgt2, imgt2_256, imgt2_128, imgt2_64, z2)
+                target = np.array(target.cpu())
+                targett1 = np.array(targett1.cpu())
+                real_imgt1 = [target,targett1]
+                new_image = np.array(real_imgt1)
+                real_imgt1 = np.array(real_imgt1).transpose(1,2,0,3,4)
+                real_imgt1 = torch.from_numpy(real_imgt1.astype(np.float32)).cuda()
+                rf1 = self.F(real_imgt1)
+                    
+                targett2 = np.array(targett2.cpu())
+                real_imgt2 = [targett1,targett2]
+                real_imgt2 = np.array(real_imgt2).transpose(1,2,0,3,4)
+                real_imgt2 = torch.from_numpy(real_imgt2.astype(np.float32)).cuda()
+                rf2 = self.F(real_imgt2)
+
+                #generated flow imgs
+                pred_img_np = np.array(pred_img.detach().cpu())
+                pred_imgt1_np = np.array(pred_imgt1.detach().cpu())
+                gen_imgt1 = [pred_img_np, pred_imgt1_np]
+                gen_imgt1 = np.array(gen_imgt1).transpose(1,2,0,3,4)
+                gen_imgt1 = torch.from_numpy(gen_imgt1.astype(np.float32)).cuda()
+                gf1 = self.F(gen_imgt1)
+                
+                pred_imgt2_np = np.array(pred_imgt2.detach().cpu())
+                gen_imgt2 = [pred_imgt1_np,pred_imgt2_np]
+                gen_imgt2 = np.array(gen_imgt2).transpose(1,2,0,3,4)
+                gen_imgt2 = torch.from_numpy(gen_imgt2.astype(np.float32)).cuda()
+                gf2 = self.F(gen_imgt2)
+
+            
+
+                pixel_loss_Ft1 = self.criterion('F', self.D, img, gf1, rf1, epoch_index)
+                pixel_loss_Ft2 = self.criterion('F', self.D, img, gf2, rf2, epoch_index)
+                # additional_losst1 = nn.MSELoss(real_imgt1,gf1)
+                # additional_losst2 = nn.MSELoss(real_imgt2,gf2)
+
+            
+                G_loss = 0.2 * pixel_loss_Ft1  + 0.2 * pixel_loss_Ft2 
+                        
 
             epoch_loss += pixel_loss.item()
 
@@ -163,12 +240,23 @@ class TrainerGAN:
         for iteration, batch in enumerate(self.val_dataloader):
             if self.args.mode == 'basic':
                 img, target = batch[0], batch[1]
+
+            elif self.args.mode =='flownet':
+                imgs, imgs256, imgs128, imgs64, targets = batch[0], batch[1], batch[2], batch[3], batch[4]
+                img = imgs[0]
+                img256 = imgs256[0]
+                img128 = imgs128[0]
+                img64  = imgs64[0]
+                target = targets[0]
+
             else:
                 img, img256, img128, img64, target = batch[0], batch[1], batch[2], batch[3], batch[4]
+
             if self.args.cuda:
                 if self.args.mode == 'basic':
                     img, target = img.cuda(), target.cuda()
-                else:
+      
+                else:   
                     img, img256, img128, img64, target = img.cuda(), img256.cuda(), img128.cuda(), img64.cuda(), target.cuda()
 
             # z: noise

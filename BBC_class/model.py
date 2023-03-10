@@ -192,7 +192,7 @@ class Generator(nn.Module):
         # print('conv5 shape: ', conv5.shape)
 
         # feature
-        print('')
+        # print('')
         feature = self.features(conv5, z)
         # print('feature shape: ', feature.shape)
 
@@ -224,7 +224,7 @@ class Discriminator(nn.Module):
         use_batchnorm = args.use_batchnorm
         discriminator_channel = [32, 64, 128, 256, 256]
         self.args = args
-        if args.mode == 'conditional_gan':
+        if args.mode == 'conditional_gan' or args.mode =='flownet':
             input_channel = 6
         else:
             input_channel = 3

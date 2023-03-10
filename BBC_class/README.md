@@ -25,3 +25,10 @@ Conditional Gan:
 ![cgan](https://github.com/cvgroup-erke/YunyingChen/blob/main/BBC_class/imgs/BBC_Western_360_cgan.jpg)
 ![cgan](https://github.com/cvgroup-erke/YunyingChen/blob/main/BBC_class/imgs/BBC_Western_14580_cgan.jpg)
 ![cgan](https://github.com/cvgroup-erke/YunyingChen/blob/main/BBC_class/imgs/BBC_Western_22680_cgan.jpg)
+
+
+
+Conditional Gan with FlowNet2.0:                  
+![fgan](https://github.com/cvgroup-erke/YunyingChen/blob/main/BBC_class/imgs/BBC_Western_360_fnet.jpg)
+![fgan](https://github.com/cvgroup-erke/YunyingChen/blob/main/BBC_class/imgs/BBC_Western_14580_fnet.jpg)
+![fgan](https://github.com/cvgroup-erke/YunyingChen/blob/main/BBC_class/imgs/BBC_Western_22680_fnet.jpg)

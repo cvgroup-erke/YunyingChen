@@ -5,7 +5,7 @@ import torch
 import numpy as np
 from PIL import Image
 import random
-
+import os
 from config import load_config
 
 
@@ -73,39 +73,95 @@ class BBCDataProcess(Dataset):
 
     def __getitem__(self, index: int):  # -> Tuple(torch.Tensor, torch.Tensor):
         # Return the input tensor and output tensor for training
-        image_names = self.file_list[index].split(' ')
-        source_image_name = image_names[0]
-        target_image_name = image_names[1][:-1]
-        # img_name = self.file_list[index]
-        source_image = np.asarray(Image.open(source_image_name))
-        target_image = np.asarray(Image.open(target_image_name))
-        try:
-            if self.mode == 'basic':
-                input_image, target_image = self.transform(source_image, 'source', 256), \
-                                            self.transform(target_image, 'target', 256)
-            else:
+        if self.mode =='flownet':
+            image_names = self.file_list[index].split(' ')
+            source_image_name = image_names[0]
+            target_image_name = image_names[1][:-1]
+            dir_path = os.path.dirname(source_image_name)
+            # img_name = self.file_list[index]
+            source_image = np.asarray(Image.open(source_image_name))
+            target_image = np.asarray(Image.open(target_image_name))
+            
+            #   t1/t2
+            # dir_path = os.path.dirname(source_image)
+            img_name = source_image_name.split('/')[-1]
+            img_name = int(img_name.split('.jpg')[0])
+            img_t1_s = os.path.join(dir_path,str(img_name+1)+'.jpg')
+            img_t2_s = os.path.join(dir_path,str(img_name+1)+'.jpg')
+            img_t1_t = img_t1_s.replace('source','target')
+            img_t2_t = img_t2_s.replace('source','target')
+
+            img_t1_s = np.asarray(Image.open(img_t1_s))
+            img_t1_t = np.asarray(Image.open(img_t1_t))
+
+            img_t2_s = np.asarray(Image.open(img_t2_s))
+            img_t2_t = np.asarray(Image.open(img_t2_t))
+            
+            try:
                 input_image, input_image_256, input_image_128, input_image_64, target_image = \
-                    self.transform(source_image, 'source', 256), self.transform(source_image, 'source', 0), \
-                    self.transform(source_image, 'source', 128), self.transform(source_image, 'source', 64), \
-                    self.transform(target_image, 'target', 256)
-        except:
-            # there are some strange exceptions
-            return None
+                        self.transform(source_image, 'source', 256), self.transform(source_image, 'source', 0), \
+                        self.transform(source_image, 'source', 128), self.transform(source_image, 'source', 64), \
+                        self.transform(target_image, 'target', 256)
+
+                #t1
+                input_imaget1, input_imaget1_256, input_imaget1_128, input_imaget1_64, target_imaget1 = \
+                    self.transform(img_t1_s, 'source', 256), self.transform(img_t1_s, 'source', 0), \
+                    self.transform(img_t1_s, 'source', 128), self.transform(img_t1_s, 'source', 64), \
+                    self.transform(img_t1_t, 'target', 256)
+
+                #t2
+                input_imaget2, input_imaget2_256, input_imaget2_128, input_imaget2_64, target_imaget2 = \
+                    self.transform(img_t2_s, 'source', 256), self.transform(img_t2_s, 'source', 0), \
+                    self.transform(img_t2_s, 'source', 128), self.transform(img_t2_s, 'source', 64), \
+                    self.transform(img_t2_t, 'target', 256)
+
+
+            except:
+                # there are some strange exceptions
+                return None
+        else:
+            image_names = self.file_list[index].split(' ')
+            source_image_name = image_names[0]
+            target_image_name = image_names[1][:-1]
+            # img_name = self.file_list[index]
+            source_image = np.asarray(Image.open(source_image_name))
+            target_image = np.asarray(Image.open(target_image_name))
+            try:
+                if self.mode == 'basic':
+                    input_image, target_image = self.transform(source_image, 'source', 256), \
+                                                self.transform(target_image, 'target', 256)
+                else:
+                    input_image, input_image_256, input_image_128, input_image_64, target_image = \
+                        self.transform(source_image, 'source', 256), self.transform(source_image, 'source', 0), \
+                        self.transform(source_image, 'source', 128), self.transform(source_image, 'source', 64), \
+                        self.transform(target_image, 'target', 256)
+            except:
+                # there are some strange exceptions
+                return None
+
         if self.mode == 'basic':
             return input_image, target_image
-        else:
-            return input_image, input_image_256, input_image_128, input_image_64, target_image
+            
+        elif self.mode == 'flownet':
+            input_images = [input_image,input_imaget1,input_imaget2]
+            input_images_256 = [input_image_256,input_imaget1_256,input_imaget2_256]
+            input_images_128  =[input_image_128,input_imaget1_128,input_imaget2_128]
+            input_images_64 = [input_image_64,input_imaget1_64,input_imaget2_64] 
+            target_images = [target_image,target_imaget1,target_imaget2]     
+            return input_images, input_images_256, input_images_128, input_images_64, target_images
 
+        else:
+            return input_image, input_image_256, input_image_128, input_image_64, 
 
 class BBCDataset:
     def __init__(self, args):
         random.seed(args.seed)
 
         # generate the list contains all data/images
-        data_list_file = 'data_list.txt'
+        data_list_file = 'data_list2.txt'
         with open(data_list_file) as f:
             all_img_ids = f.readlines()
-        # random.shuffle(all_img_ids)
+        random.shuffle(all_img_ids)
 
         # generate training & validating image lists
         if args.val_ratio == 0:

@@ -21,4 +21,4 @@ It shows the 3 results by using different losses:
 
 
 # BBC_class
-In this repo, it includes the color correction model with gan and conditional gan.
+In this repo, it includes the color correction model with gan, conditional gan and FlowNet2.0.

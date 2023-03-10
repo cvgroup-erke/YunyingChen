@@ -13,7 +13,7 @@ def load_config():
     parser.add_argument('-s',
                         '--save_path',
                         # default='/home/workspace/BBC/pths'
-                        default='./pths_cgan',
+                        default='./pths_Fnet',
                         help='location to save models')
 
     # training parameters
@@ -30,7 +30,7 @@ def load_config():
     parser.add_argument('-b',
                         '--batch_size',
                         type=int,
-                        default=16,
+                        default=4,
                         help='batch size')
     parser.add_argument('--milestones',
                         default=[30, 50],
@@ -72,12 +72,16 @@ def load_config():
                         type=float,
                         default=0.2,
                         help='weight of perceptual loss for Generator')
-
+    # Flownet parameter
+    parser.add_argument('--fp16',
+                        type=bool,
+                        default=False,
+                        help='parameter for Flownet2.0')
     # training pipeline
     parser.add_argument('-m',
                         '--mode',
-                        default='conditional_gan',
-                        choices=['basic', 'advanced', 'gan','conditional_gan'],
+                        default='flownet',
+                        choices=['basic', 'advanced', 'gan','conditional_gan','flownet'],
                         help='running mode of this project. \n'
                              'basic: use the naive simple network. \n'
                              'advanced: use the UNet-like advanced network. \n'
@@ -87,10 +91,16 @@ def load_config():
     parser.add_argument('-r',
                         '--reload',
                         type=bool,
-                        default=False,
+                        default=True,
                         help='if True, reload existing model and finetune.\n'
                              '         the name of the model is defined by --resume\n'
                              'if False, train from scratch')
+    parser.add_argument('-resume_G',
+                        type=str,
+                        default='./pths_Fnet/G_epoch_27_best.pth')
+    parser.add_argument('-resume_D',
+                        type=str,
+                        default='./pths_Fnet/D_epoch_27_best.pth')
     parser.add_argument('--solver',
                         type=str,
                         default='adam',
@@ -107,7 +117,7 @@ def load_config():
     parser.add_argument('--resume',
                         type=str,
                     #     default='/home/workspace/BBC/pths/gan/G_gan_best.pth',
-                        default = './pths/G_epoch_137_best.pth',
+                        default = './pths_Fnet/G_epoch_27_best.pth',
                         help='trained model. used for retraining')
     parser.add_argument('--save_generated_result',
                         type=bool,
@@ -116,7 +126,7 @@ def load_config():
     parser.add_argument('--save_generated_result_path',
                         type=str,
                     #     default='/home/workspace/BBC/generated',
-                        default='./generated_cgan',
+                        default='./generated_flownet',
                         help='path of the saving generated results')
 
     # Evaluation
