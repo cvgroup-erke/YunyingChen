@@ -37,6 +37,24 @@ from networks.submodules import *
 #     from .networks.submodules import *
 'Parameter count = 162,518,834'
 
+def get_grid(batchsize, rows, cols, gpu_id=0, dtype=torch.float32):
+    hor = torch.linspace(-1.0, 1.0, cols)
+    hor.requires_grad = False
+    hor = hor.view(1, 1, 1, cols)
+    hor = hor.expand(batchsize, 1, rows, cols)
+    ver = torch.linspace(-1.0, 1.0, rows)
+    ver.requires_grad = False
+    ver = ver.view(1, 1, rows, 1)
+    ver = ver.expand(batchsize, 1, rows, cols)
+
+    t_grid = torch.cat([hor, ver], 1)
+    t_grid.requires_grad = False
+
+    if dtype == torch.float16: t_grid = t_grid.half()
+    return t_grid.cuda()
+
+
+
 class FlowNet2(nn.Module):
 
     def __init__(self, args, batchNorm=False, div_flow = 20.):

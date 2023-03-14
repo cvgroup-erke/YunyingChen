@@ -10,7 +10,7 @@ from bbc_data import BBCDataset, collate_fn
 from model import Discriminator, Generator
 from loss import LossGAN
 from config import load_config
-from flownet import FlowNet2
+from flownet import FlowNet2,get_grid
 import gc
 import torch.nn as nn
 import numpy as np
@@ -84,6 +84,21 @@ class TrainerGAN:
             checkpoint_D = torch.load(args.resume_D)
             self.D.load_state_dict(checkpoint_D['state_dict'], strict=True)
             self.optimizer_D.load_state_dict(checkpoint_D['optimizer'])
+
+    def grid_sample(self, input1, input2):
+        if self.args.fp16: # not sure if it's necessary
+            return torch.nn.functional.grid_sample(input1.float(), input2.float(), mode='bilinear', padding_mode='border').half()
+        else:
+            return torch.nn.functional.grid_sample(input1, input2, mode='bilinear', padding_mode='border')
+
+    def resample(self, image, flow):        
+        b, c, h, w = image.shape      
+        if not hasattr(self, 'grid') or self.grid.size() != flow.size():
+            self.grid = get_grid(b, h, w, dtype=flow.dtype)            
+        flow = torch.cat([flow[:, 0:1, :, :] / ((w - 1.0) / 2.0), flow[:, 1:2, :, :] / ((h - 1.0) / 2.0)], dim=1)        
+        final_grid = (self.grid + flow).permute(0, 2, 3, 1).cuda()
+        output = self.grid_sample(image, final_grid)
+        return output
 
     def train(self, epoch_index):
         epoch_loss = 0
@@ -199,14 +214,19 @@ class TrainerGAN:
                 gf2 = self.F(gen_imgt2)
 
             
+                #flow+image
+                gf_targett1 = self.resample(torch.tensor(target).cuda(),torch.tensor(gf1).cuda())
+                gf_targett2 = self.resample(torch.tensor(targett1).cuda(),torch.tensor(gf2).cuda())
+
 
                 pixel_loss_Ft1 = self.criterion('F', self.D, img, gf1, rf1, epoch_index)
                 pixel_loss_Ft2 = self.criterion('F', self.D, img, gf2, rf2, epoch_index)
-                # additional_losst1 = nn.MSELoss(real_imgt1,gf1)
-                # additional_losst2 = nn.MSELoss(real_imgt2,gf2)
+                additional_losst1 = self.criterion('F', self.D, img, torch.tensor(targett1).cuda(), torch.tensor(gf_targett1).cuda(), epoch_index)
+                additional_losst2 = self.criterion('F', self.D, img, torch.tensor(targett2).cuda(), torch.tensor(gf_targett2).cuda(), epoch_index)
 
             
-                G_loss = 0.2 * pixel_loss_Ft1  + 0.2 * pixel_loss_Ft2 
+                G_loss = 0.2 * pixel_loss_Ft1  + 0.2 * pixel_loss_Ft2 +\
+                         0.2 * additional_losst1 + 0.2 * additional_losst2
                         
 
             epoch_loss += pixel_loss.item()
